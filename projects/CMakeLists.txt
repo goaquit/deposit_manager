@@ -1,3 +1,2 @@
-
-
+add_subdirectory(deposit_manager)
 add_subdirectory(test_project)
