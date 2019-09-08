@@ -60,7 +60,7 @@ void DepositManager::Process() {
 		throw std::exception("Amount lot not set");
 	}
 
-	const auto available_amount = available_cash / _close_price;
+	const auto available_amount = available_cash / (_close_price * (1 + kBrokerTax) * (1 + kExchangeTax));
 	_amount_lot = (available_amount - (static_cast<int>(available_amount) % _lot)) / _lot;
 
 	const auto count_item = _amount_lot * _lot;

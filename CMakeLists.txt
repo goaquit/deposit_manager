@@ -42,3 +42,11 @@ elseif(WIN32)
 endif()
 
 add_subdirectory("projects")
+
+enable_testing()
+include(CTest)
+set(GTEST_ROOT "G:\\third_party")
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+add_subdirectory(tests)

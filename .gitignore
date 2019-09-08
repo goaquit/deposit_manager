@@ -417,3 +417,4 @@ build/*
 !.vscode/launch.json
 !.vscode/extensions.json
 out/*
+/CMakeSettings.json
