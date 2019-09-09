@@ -61,6 +61,22 @@ TEST(DepositManager, CalculateAvailableVolumeWithBroker) {
   ASSERT_EQ(actual_volume, expected);
 }
 
+TEST(DepositManager, GetStopLoseTarget)
+{
+	Deposit deposit(8896, 4700);
+	deposit.SetRiskLevel(0.01);
+
+	Broker broker(0.003, 0.0001);
+	Securities securities(227.1, broker);
+	securities.SetLotSize(10);
+
+	const auto stop_lose = deposit.AvailableStopLose(securities);
+
+	const double expected = 224.0484;
+
+	ASSERT_DOUBLE_EQ(stop_lose, expected);
+}
+
 }  // namespace deposit_manager
 
 int main(int argc, char *argv[]) {

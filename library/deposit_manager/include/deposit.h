@@ -8,7 +8,8 @@ class Deposit {
  public:
   Deposit(double amount, double free_amount = 0.0);
 
-  int AvailableVolume(const Securities &securities);
+  int AvailableVolume(const Securities &securities) const;
+  double AvailableStopLose(const Securities& securities) const;
 
   void SetFreeAmoun(double amount) noexcept;
   void SetRiskLevel(double level_risk) noexcept;
@@ -19,6 +20,7 @@ class Deposit {
   double _level_risk = 0.0;
 
   double FreeDeposit() const;
+  double RiskAmount() const;
 };
 
 }  // namespace deposit_manager
