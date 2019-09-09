@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 
 project(deposit_manager VERSION 0.1 LANGUAGES CXX)
 
+set(THIRD_PARTY_DIR "" CACHE PATH "Path to third party library directory")
 
-
-option(BUILD_QT "Enable Qt library" ON)
+option(BUILD_QT "Enable Qt library" OFF)
 
 if(BUILD_QT)
 
@@ -28,10 +28,10 @@ if(USE_GNU_INSTALL_DIR)
 
    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 endif()
 
 if(UNIX)
-
 
    if(CMAKE_BUILD_TYPE STREQUAL Debug)
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
@@ -43,10 +43,20 @@ endif()
 
 add_subdirectory("projects")
 
-enable_testing()
-include(CTest)
-set(GTEST_ROOT "G:\\third_party")
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+option(BUILD_LIBRARY "Building library" ON)
+if(BUILD_LIBRARY)
+   add_subdirectory("library")
 
-add_subdirectory(tests)
+endif()
+
+option(BUILD_TEST "Building test" ON)
+if(BUILD_TEST)
+   enable_testing()
+   include(CTest)
+   set(GTEST_ROOT ${THIRD_PARTY_DIR} CACHE PATH "Path to gtest library")
+   find_package(GTest REQUIRED)
+   include_directories(${GTEST_INCLUDE_DIRS})
+
+   add_subdirectory("tests")
+
+endif()
