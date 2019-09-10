@@ -9,7 +9,9 @@ class Deposit {
   Deposit(double amount, double free_amount = 0.0);
 
   int AvailableVolume(const Securities& securities) const;
-  double AvailableStopLose(const Securities& securities) const;
+
+  double StopLossLevel(const Securities& securities) const;
+  double TakeProfitLevel(const Securities& securities) const;
 
   void SetFreeAmoun(double amount) noexcept;
   void SetRiskLevel(double level_risk) noexcept;

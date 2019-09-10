@@ -8,6 +8,8 @@
 #include <deposit.h>
 #include <securities.h>
 
+const double kEps = 0.000001;
+
 namespace deposit_manager {
 
 TEST(DepositManager, TaxCalculate) {
@@ -86,7 +88,7 @@ TEST(DepositManager, SecuritiesSellPriceWithCommission) {
   ASSERT_DOUBLE_EQ(actual_buy_price, expected);
 }
 
-TEST(DepositManager, GetStopLoseTarget) {
+TEST(DepositManager, GetStopLossTarget) {
   Deposit deposit(8876.09, 4300);
   deposit.SetRiskLevel(0.01);
 
@@ -94,14 +96,30 @@ TEST(DepositManager, GetStopLoseTarget) {
   Securities securities(0.5566, broker);
   securities.SetLotSize(1000);
 
-  const auto actual_stop_lose = deposit.AvailableStopLose(securities);
+  const auto actual_stop_loss = deposit.StopLossLevel(securities);
 
-  const double expected = 0.547342;
+  const double expected = 0.547342092;
 
-  const auto diff = std::abs(actual_stop_lose - expected);
+  const auto diff = std::abs(actual_stop_loss - expected);
 
-  const auto eps = 0.0000001;
-  ASSERT_TRUE(diff < eps);
+  ASSERT_TRUE(diff < kEps);
+}
+
+TEST(DepositManager, GetTakeProfitTarget) {
+  Deposit deposit(8876.09, 4300);
+  deposit.SetRiskLevel(0.01);
+
+  Broker broker(0.003, 0.0001);
+  Securities securities(0.5566, broker);
+  securities.SetLotSize(1000);
+
+  const auto actual_take_profit = deposit.TakeProfitLevel(securities);
+
+  const double expected = 0.58550077;
+
+  const auto diff = std::abs(actual_take_profit - expected);
+
+  ASSERT_TRUE(diff < kEps);
 }
 
 }  // namespace deposit_manager

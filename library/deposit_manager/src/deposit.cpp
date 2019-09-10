@@ -15,12 +15,20 @@ double Deposit::FreeDeposit() const {
   return _amount_free - (_amount * _level_risk);
 }
 
-double Deposit::AvailableStopLose(const Securities& securities) const {
+double Deposit::StopLossLevel(const Securities& securities) const {
   const auto volume = AvailableVolume(securities);
-
   const auto tax_sell = 1 - securities.broker().tax();
 
   const auto cost = (securities.BuyPrice() - Risk() / volume) / tax_sell;
+
+  return cost;
+}
+
+double Deposit::TakeProfitLevel(const Securities& securities) const {
+  const auto volume = AvailableVolume(securities);
+  const auto tax_sell = 1 - securities.broker().tax();
+
+  const auto cost = (securities.BuyPrice() + 2 * Risk() / volume) / tax_sell;
 
   return cost;
 }
