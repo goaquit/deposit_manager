@@ -6,16 +6,20 @@ namespace deposit_manager {
 
 class Securities {
  public:
-  Securities(double price);
-  Securities(double price, const Broker &broker);
+  Securities(double BuyPrice);
+  Securities(double BuyPrice, const Broker& broker);
 
   double CalculateCost(int volume) const;
 
-  double price() const;
+  double Price() const;
+  double BuyPrice() const;
+  double SellPrice() const;
 
   int lotSize() const;
 
   void SetLotSize(int size) noexcept;
+
+  const Broker& broker() const;
 
  private:
   double _price = 0.0;

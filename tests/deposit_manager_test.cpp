@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+// std
+#include <cmath>
+
 // library
 #include <broker.h>
 #include <deposit.h>
@@ -61,20 +64,44 @@ TEST(DepositManager, CalculateAvailableVolumeWithBroker) {
   ASSERT_EQ(actual_volume, expected);
 }
 
-TEST(DepositManager, GetStopLoseTarget)
-{
-	Deposit deposit(8896, 4700);
-	deposit.SetRiskLevel(0.01);
+TEST(DepositManager, SecuritiesBuyPriceWithCommission) {
+  Broker broker(0.003, 0.0001);
+  Securities securities(100.0, broker);
 
-	Broker broker(0.003, 0.0001);
-	Securities securities(227.1, broker);
-	securities.SetLotSize(10);
+  const double actual_buy_price = securities.BuyPrice();
 
-	const auto stop_lose = deposit.AvailableStopLose(securities);
+  const double expected = 100.31;
 
-	const double expected = 224.0484;
+  ASSERT_DOUBLE_EQ(actual_buy_price, expected);
+}
 
-	ASSERT_DOUBLE_EQ(stop_lose, expected);
+TEST(DepositManager, SecuritiesSellPriceWithCommission) {
+  Broker broker(0.003, 0.0001);
+  Securities securities(100.0, broker);
+
+  const double actual_buy_price = securities.SellPrice();
+
+  const double expected = 99.69;
+
+  ASSERT_DOUBLE_EQ(actual_buy_price, expected);
+}
+
+TEST(DepositManager, GetStopLoseTarget) {
+  Deposit deposit(8876.09, 4300);
+  deposit.SetRiskLevel(0.01);
+
+  Broker broker(0.003, 0.0001);
+  Securities securities(0.5566, broker);
+  securities.SetLotSize(1000);
+
+  const auto actual_stop_lose = deposit.AvailableStopLose(securities);
+
+  const double expected = 0.547342;
+
+  const auto diff = std::abs(actual_stop_lose - expected);
+
+  const auto eps = 0.0000001;
+  ASSERT_TRUE(diff < eps);
 }
 
 }  // namespace deposit_manager
