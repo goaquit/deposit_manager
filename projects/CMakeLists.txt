@@ -1,1 +1,2 @@
+add_subdirectory(deposit_manager_old)
 add_subdirectory(deposit_manager)

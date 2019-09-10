@@ -2,66 +2,109 @@
 
 #include <iostream>
 
-const double kBrokerTax = 0.003;
-const double kExchangeTax = 0.0001;
-const double kMaxRisk = 0.01;
+#include <securities.h>
+
+namespace deposit_manager {
+
+Deposit GetDeposit();
+Broker GetBroker();
+Securities GetSecurities(const Broker& broker);
 
 void DepositManager::Run() {
   try {
-    std::cout << "Set current deposit: ";
+    _deposit = GetDeposit();
+    _broker = GetBroker();
 
-    std::cin >> _deposit;
+    // todo: add loop
+    const auto securities = GetSecurities(_broker);
 
-    std::cout << "Set free volume cash: ";
-    std::cin >> _free_cash;
-
-    if (_deposit == 0.0 || _free_cash > _deposit) {
-      throw std::runtime_error("Free cash bigger than deposit value.");
-    }
-
-    CalculateRisk();
-    std::cout << "Available risk value: " << _available_risk << std::endl;
-
-    std::cout << "Set lot amoun (1, 10, 100, 1 000, 10 000): ";
-    std::cin >> _lot;
-
-    std::cout << "Enter close price: ";
-    std::cin >> _close_price;
-
-    if (_close_price == 0.0) {
-      throw std::runtime_error("Price cannot be equal to 0");
-    }
-
-    Process();
-
-    std::cout << "Amount: " << _amount_lot << "\nStop lose: " << _stop_lose
-              << "\nTake profit: " << _take_profit << std::endl;
+    ShowInformation(securities);
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
 }
 
-void DepositManager::CalculateRisk() { _available_risk = _deposit * kMaxRisk; }
+Deposit GetDeposit() {
+  double deposit = 8876.09, free_deposit = 4300;
 
-void DepositManager::Process() {
-  const auto available_cash = _free_cash - _available_risk;
-
-  if (available_cash <= _available_risk) {
-    throw std::runtime_error("Risk exceeds available cash");
+  std::cout << "Deposit: ";
+  std::cin >> deposit;
+  if (std::cin.fail() || deposit <= 0.0) {
+    throw std::runtime_error(
+        "Incorrect deposit value. Deposit must by greater than 0");
   }
 
-  if (_lot == 0) {
-    throw std::runtime_error("Amount lot not set");
+  std::cout << "Free deposit: ";
+  std::cin >> free_deposit;
+  if (std::cin.fail() || free_deposit < 0.0 || free_deposit > deposit) {
+    throw std::runtime_error(
+        "Incorrect free deposit value. Free deposit cannot be negative or more "
+        "than "
+        "deposit.");
   }
 
-  const auto available_amount =
-      available_cash / (_close_price * (1 + kBrokerTax) * (1 + kExchangeTax));
-  _amount_lot = static_cast<int>(
-      (available_amount - (static_cast<int>(available_amount) % _lot)) / _lot);
+  double risk = 0.0;
+  std::cout << "Available risk for deposit ( from 0.0 to 1.0 ): ";
+  std::cin >> risk;
+  if (std::cin.fail() || (risk < 0.0 || risk > 1.0)) {
+    throw std::runtime_error("Incorrect risk value. Risk Level Out of Range.");
+  }
 
-  const auto count_item = _amount_lot * _lot;
+  Deposit depo(deposit, free_deposit);
+  depo.SetRiskLevel(risk);
 
-  _stop_lose = (count_item * _close_price - _available_risk) / count_item;
-  _take_profit = 2 * (_close_price - _stop_lose) + _close_price;
+  return depo;
 }
+
+Broker GetBroker() {
+  double tax_broker = 0.003;
+  double tax_exchange = 0.0001;
+
+  std::cout << "Broker tax: " << tax_broker
+            << "(default); Exchange tax: " << tax_exchange << "(default);"
+            << std::endl;
+
+  return Broker(tax_broker, tax_exchange);
+}
+
+Securities GetSecurities(const Broker& broker) {
+  double price = 0.0;
+  std::cout << "Securities close price: ";
+  std::cin >> price;
+
+  if (std::cin.fail() || price <= 0.0) {
+    throw std::runtime_error("Incorrect price. Price must be greater than 0.");
+  }
+
+  int lot_size = 1;
+
+  std::cout << "Set lot size (1,10,100,1000,10000): ";
+  std::cin >> lot_size;
+
+  if (std::cin.fail() || lot_size < 1) {
+    throw std::runtime_error(
+        "Incorrect lot size. Lot size must match (1,10,100,1000,10000).");
+  }
+
+  Securities securities(price, broker);
+  securities.SetLotSize(lot_size);
+
+  return securities;
+};
+
+void DepositManager::ShowInformation(const Securities& securities) {
+  const auto risk = _deposit.Risk();
+  const auto volume = _deposit.AvailableVolume(securities);
+  const auto stop_loss = _deposit.StopLossLevel(securities);
+  const auto take_profit = _deposit.TakeProfitLevel(securities);
+  const auto price = securities.Price();
+
+  const auto profit = (take_profit - securities.BuyPrice()) * volume;
+
+  std::cout << "Price: " << price << "\nVolume: " << volume
+            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
+            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
+}
+
+}  // namespace deposit_manager

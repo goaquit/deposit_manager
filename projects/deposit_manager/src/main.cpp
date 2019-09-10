@@ -2,11 +2,12 @@
 
 #include "deposit_manager.h"
 
-int main(int argc, char* argv[])
-{
-	DepositManager deposit_manager;
+using DepositManager = deposit_manager::DepositManager;
 
-	deposit_manager.Run();
+int main(int /*argc*/, char* /*argv*/[]) {
+  DepositManager deposit_manager;
 
-	return 0;
+  deposit_manager.Run();
+
+  return 0;
 }
