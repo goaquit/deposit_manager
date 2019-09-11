@@ -63,6 +63,12 @@ elseif(WIN32)
 
 endif()
 
+#########################################
+# Find package
+
+find_package(cpprestsdk CONFIG REQUIRED)
+
+#########################################
 
 add_subdirectory("projects")
 
@@ -81,7 +87,7 @@ if(BUILD_TEST)
    include_directories(${GTEST_INCLUDE_DIRS})
 
 
-   find_package(cpprestsdk CONFIG REQUIRED)
+
 
 
    add_subdirectory("tests")
