@@ -1,8 +1,22 @@
 cmake_minimum_required(VERSION 3.14)
 
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CACHE STRING "")
+
+   message(STATUS "${CMAKE_TOOLCHAIN_FILE} toolchain file")
+
+   else()
+
+      message(FATAL_ERROR "VCPKG_ROOT variable environment not set. Please set the path to the root directory vcpkg.")
+
+endif()
+
 project(deposit_manager VERSION 0.1 LANGUAGES CXX)
 
 set(THIRD_PARTY_DIR "" CACHE PATH "Path to third party library directory")
+
+find_package(cpprestsdk CONFIG REQUIRED)
 
 option(BUILD_QT "Enable Qt library" OFF)
 
@@ -40,6 +54,8 @@ if(UNIX)
 elseif(WIN32)
 
 endif()
+
+
 
 add_subdirectory("projects")
 
