@@ -52,10 +52,7 @@ TEST(Integration_CppRestSdk, GettingStartHttpClient) {
 
       ASSERT_TRUE(is_finded);
 
-      bool is_not_finded =
-          first_element.find(U("bad_key")) != first_element.end();
-
-      ASSERT_FALSE(is_not_finded);
+      ASSERT_THROW(first_element.at(U("bad_key")), web::json::json_exception);
 
       std::cout << std::endl;
     } catch (web::json::json_exception& e) {
