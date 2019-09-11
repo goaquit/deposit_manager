@@ -24,5 +24,3 @@ target_link_libraries(test_iss_moex_rest_api
 
 
 add_test(RunTest test_iss_moex_rest_api)
-
-
