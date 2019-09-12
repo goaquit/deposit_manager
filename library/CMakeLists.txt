@@ -3,3 +3,4 @@
 
 # namespace deposit_manager
 add_subdirectory("deposit_manager")
+add_subdirectory("moex_client")

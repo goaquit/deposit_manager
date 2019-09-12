@@ -33,6 +33,7 @@ target_link_libraries(test_iss_moex_rest_api
    PRIVATE
       ${GTEST_BOTH_LIBRARIES}
       cpprestsdk::cpprest cpprestsdk::cpprestsdk_zlib_internal cpprestsdk::cpprestsdk_boost_internal cpprestsdk::cpprestsdk_openssl_internal
+      moex_client_library
 )
 
 
