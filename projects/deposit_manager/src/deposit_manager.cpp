@@ -34,18 +34,19 @@ void DepositManager::Run() {
 }
 
 Deposit GetDeposit() {
-  double deposit = 8876.09, free_deposit = 4300;
+  double deposit = 0.0, free_deposit = 0.0;
 
   std::cout << "Deposit: ";
-  std::cin >> deposit;
-  if (std::cin.fail() || deposit <= 0.0) {
+
+  if (!(std::cin >> deposit) || deposit <= 0.0) {
     throw std::runtime_error(
         "Incorrect deposit value. Deposit must by greater than 0");
   }
 
   std::cout << "Free deposit: ";
-  std::cin >> free_deposit;
-  if (std::cin.fail() || free_deposit < 0.0 || free_deposit > deposit) {
+
+  if (!(std::cin >> free_deposit) || free_deposit < 0.0 ||
+      free_deposit > deposit) {
     throw std::runtime_error(
         "Incorrect free deposit value. Free deposit cannot be negative or more "
         "than "
@@ -54,8 +55,7 @@ Deposit GetDeposit() {
 
   double risk = 0.0;
   std::cout << "Available risk for deposit ( from 0.0 to 1.0 ): ";
-  std::cin >> risk;
-  if (std::cin.fail() || (risk < 0.0 || risk > 1.0)) {
+  if (!(std::cin >> risk) || (risk < 0.0 || risk > 1.0)) {
     throw std::runtime_error("Incorrect risk value. Risk Level Out of Range.");
   }
 
@@ -80,9 +80,7 @@ std::string GetSecurities() {
   std::cout << "\nSecurities (or `q` for quit from programm): ";
   std::string securities = "";
 
-  std::cin >> securities;
-
-  if (std::cin.fail() || securities.empty()) {
+  if (!(std::cin >> securities) || securities.empty()) {
     throw std::runtime_error("Incorrect securities.");
   }
 
@@ -95,7 +93,10 @@ std::string GetSecurities() {
 
 void DepositManager::GetSecuritiesInformation(const std::string& securities) {
   if (!_moex_client->requestForSecurityInformation(securities)) {
-    throw std::runtime_error("Request to moex api not done.");
+    const auto error_message =
+        "Request to moex api not done.\n" + _moex_client->error();
+    std::cerr << error_message << std::endl;
+    return;
   }
 
   Securities sec(_moex_client->GetLastPrice(), _broker);

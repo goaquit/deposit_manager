@@ -10,6 +10,7 @@ target_link_libraries(${target_name}
    PUBLIC
       deposit_manager_library
       moex_client_library
+      Boost::program_options
 )
 target_include_directories(${target_name}
    PUBLIC

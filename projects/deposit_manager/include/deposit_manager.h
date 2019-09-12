@@ -18,7 +18,15 @@ class DepositManager {
   DepositManager& operator=(const DepositManager&) = delete;
   DepositManager& operator=(DepositManager&&) = delete;
 
-  void Run();
+  struct Config {
+    double deposit = 0.0;
+    double deposit_free = 0.0;
+    double tax_broker = 0.0;
+    double tax_exchange = 0.0;
+    double risk_level = 1.0;
+  };
+
+  void Run(const Config& config);
 
  private:
   Deposit _deposit;

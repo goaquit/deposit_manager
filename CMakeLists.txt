@@ -57,7 +57,7 @@ endif()
 if(UNIX)
 
    if(CMAKE_BUILD_TYPE STREQUAL Debug)
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -pedantic")
    endif()
 
 elseif(WIN32)
@@ -66,7 +66,10 @@ endif()
 
 #########################################
 # Find package
-
+set( Boost_USE_STATIC_LIBS ON )
+set( Boost_USE_MULTITHREADED ON )
+set( Boost_USE_STATIC_RUNTIME OFF )
+find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(cpprestsdk CONFIG REQUIRED)
 
 #########################################

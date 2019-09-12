@@ -28,6 +28,12 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
 
       auto Value = [&json_response](const std::string& key, size_t index) {
         const auto field = json_response.at(U(key)).as_object();
+
+        if (field.at(U("data")).as_array().size() == 0) {
+          throw std::runtime_error(
+              "It is impossible to obtain data on the specified security.");
+        }
+
         const auto data = field.at(U("data")).as_array().begin();
 
         return data->at(index);
@@ -56,8 +62,9 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
       std::cerr << "Task is not completed" << std::endl;
     }
 
-  } catch (std::exception&) {
+  } catch (std::exception& e) {
     result_request = false;
+    _error = e.what();
   }
 
   return result_request;
@@ -66,6 +73,8 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
 int MoexClient::GetLotSize() const { return _lot_size; }
 
 double MoexClient::GetLastPrice() const { return _last_price; }
+
+std::string MoexClient::error() const { return _error; }
 
 void MoexClient::rest() {
   _lot_size = 0;

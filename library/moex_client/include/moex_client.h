@@ -25,6 +25,8 @@ class MoexClient {
   int GetLotSize() const;
   double GetLastPrice() const;
 
+  std::string error() const;
+
  private:
   HttpClientPtrU _client;
 
@@ -33,6 +35,8 @@ class MoexClient {
   int _status_code = 0;
 
   void rest();
+
+  std::string _error = "";
 };
 
 }  // namespace moex_client
