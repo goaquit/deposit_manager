@@ -1,23 +1,24 @@
 cmake_minimum_required(VERSION 3.14)
 
-option(VCPKG_ENABLE "Use vcpkg manager" ON)
-if(VCPKG_ENABLE)
+if(UNIX)
+   option(VCPKG_ENABLE "Use vcpkg manager" ON)
+   if(VCPKG_ENABLE)
 
-   set(VCPKG_ROOT CACHE PATH "")
+      set(VCPKG_ROOT CACHE PATH "")
 
-   if(DEFINED ENV{VCPKG_ROOT})
+      if(DEFINED ENV{VCPKG_ROOT})
 
-      set(VCPKG_ROOT $ENV{VCPKG_ROOT})
+         set(VCPKG_ROOT $ENV{VCPKG_ROOT})
 
+      endif()
+
+      if(NOT DEFINED VCPKG_ROOT)
+         message(FATAL_ERROR "VCPKG_ROOT variable environment not set. Please set the path to the root directory vcpkg.")
+      endif()
+
+      set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
    endif()
-
-   if(NOT DEFINED VCPKG_ROOT)
-      message(FATAL_ERROR "VCPKG_ROOT variable environment not set. Please set the path to the root directory vcpkg.")
-   endif()
-
-   set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 endif()
-
 
 
 project(deposit_manager VERSION 0.1 LANGUAGES CXX)
