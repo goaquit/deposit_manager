@@ -5,6 +5,16 @@ namespace moex_client {
 MoexClient::MoexClient(const std::string& rest_api_url)
     : _client(std::make_unique<http_client>(rest_api_url.c_str())) {}
 
+MoexClient& MoexClient::operator=(MoexClient&& moex_client) {
+  _client = std::move(moex_client._client);
+
+  return *this;
+}
+
+MoexClient::MoexClient(MoexClient&& moex_client) {
+  *this = std::move(moex_client);
+}
+
 bool MoexClient::requestForSecurityInformation(const std::string& securities) {
   rest();
 

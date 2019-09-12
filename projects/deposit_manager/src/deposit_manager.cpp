@@ -6,23 +6,51 @@
 
 namespace deposit_manager {
 
+constexpr char kMoexApiUri[] = "https://iss.moex.com";
+
 Deposit GetDeposit();
 Broker GetBroker();
-Securities GetSecurities(const Broker& broker);
+
+using moex_client::MoexClient;
+
+DepositManager::DepositManager()
+    : _moex_client(std::make_unique<MoexClient>(kMoexApiUri)) {}
 
 void DepositManager::Run() {
   try {
     _deposit = GetDeposit();
     _broker = GetBroker();
 
-    // todo: add loop
-    const auto securities = GetSecurities(_broker);
-
-    ShowInformation(securities);
+    GetSecuritiesInformation("RSTI");
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+}
+
+void DepositManager::GetSecuritiesInformation(const std::string& securities) {
+  if (!_moex_client->requestForSecurityInformation(securities)) {
+    throw std::runtime_error("Request to moex api not done.");
+  }
+
+  Securities sec(_moex_client->GetLastPrice(), _broker);
+  sec.SetLotSize(_moex_client->GetLotSize());
+
+  ShowInformation(sec);
+}
+
+void DepositManager::ShowInformation(const Securities& securities) const {
+  const auto risk = _deposit.Risk();
+  const auto volume = _deposit.AvailableVolume(securities);
+  const auto stop_loss = _deposit.StopLossLevel(securities);
+  const auto take_profit = _deposit.TakeProfitLevel(securities);
+  const auto price = securities.Price();
+
+  const auto profit = (take_profit - securities.BuyPrice()) * volume;
+
+  std::cout << "Price: " << price << "\nVolume: " << volume
+            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
+            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
 }
 
 Deposit GetDeposit() {
@@ -66,45 +94,6 @@ Broker GetBroker() {
             << std::endl;
 
   return Broker(tax_broker, tax_exchange);
-}
-
-Securities GetSecurities(const Broker& broker) {
-  double price = 0.0;
-  std::cout << "Securities close price: ";
-  std::cin >> price;
-
-  if (std::cin.fail() || price <= 0.0) {
-    throw std::runtime_error("Incorrect price. Price must be greater than 0.");
-  }
-
-  int lot_size = 1;
-
-  std::cout << "Set lot size (1,10,100,1000,10000): ";
-  std::cin >> lot_size;
-
-  if (std::cin.fail() || lot_size < 1) {
-    throw std::runtime_error(
-        "Incorrect lot size. Lot size must match (1,10,100,1000,10000).");
-  }
-
-  Securities securities(price, broker);
-  securities.SetLotSize(lot_size);
-
-  return securities;
-};
-
-void DepositManager::ShowInformation(const Securities& securities) {
-  const auto risk = _deposit.Risk();
-  const auto volume = _deposit.AvailableVolume(securities);
-  const auto stop_loss = _deposit.StopLossLevel(securities);
-  const auto take_profit = _deposit.TakeProfitLevel(securities);
-  const auto price = securities.Price();
-
-  const auto profit = (take_profit - securities.BuyPrice()) * volume;
-
-  std::cout << "Price: " << price << "\nVolume: " << volume
-            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
-            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
 }
 
 }  // namespace deposit_manager

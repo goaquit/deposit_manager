@@ -2,12 +2,15 @@
 
 #include <broker.h>
 #include <deposit.h>
+#include <moex_client.h>
 
 namespace deposit_manager {
 
+using MoexClientPtrU = std::unique_ptr<moex_client::MoexClient>;
+
 class DepositManager {
  public:
-  DepositManager() = default;
+  DepositManager();
   ~DepositManager() = default;
 
   DepositManager(const DepositManager&) = delete;
@@ -21,7 +24,10 @@ class DepositManager {
   Deposit _deposit;
   Broker _broker;
 
-  void ShowInformation(const Securities& securities);
+  MoexClientPtrU _moex_client = nullptr;
+
+  void GetSecuritiesInformation(const std::string& securities);
+  void ShowInformation(const Securities& securities) const;
 };
 
 }  // namespace deposit_manager

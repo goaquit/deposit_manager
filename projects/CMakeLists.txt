@@ -1,2 +1,1 @@
-add_subdirectory(rest_client)
 add_subdirectory(deposit_manager)

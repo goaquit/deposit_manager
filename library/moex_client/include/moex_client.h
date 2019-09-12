@@ -12,7 +12,13 @@ using HttpClientPtrU = std::unique_ptr<http_client>;
 
 class MoexClient {
  public:
+  MoexClient() = default;
   MoexClient(const std::string& rest_api_url);
+
+  MoexClient(const MoexClient&) = delete;
+  MoexClient& operator=(const MoexClient&) = delete;
+  MoexClient(MoexClient&& moex_client);
+  MoexClient& operator=(MoexClient&&);
 
   bool requestForSecurityInformation(const std::string& securities);
 
