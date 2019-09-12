@@ -10,6 +10,7 @@ constexpr char kMoexApiUri[] = "https://iss.moex.com";
 
 Deposit GetDeposit();
 Broker GetBroker();
+std::string GetSecurities();
 
 using moex_client::MoexClient;
 
@@ -21,36 +22,15 @@ void DepositManager::Run() {
     _deposit = GetDeposit();
     _broker = GetBroker();
 
-    GetSecuritiesInformation("RSTI");
+    for (;;) {
+      const auto securities = GetSecurities();
+
+      GetSecuritiesInformation(securities);
+    }
 
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-}
-
-void DepositManager::GetSecuritiesInformation(const std::string& securities) {
-  if (!_moex_client->requestForSecurityInformation(securities)) {
-    throw std::runtime_error("Request to moex api not done.");
-  }
-
-  Securities sec(_moex_client->GetLastPrice(), _broker);
-  sec.SetLotSize(_moex_client->GetLotSize());
-
-  ShowInformation(sec);
-}
-
-void DepositManager::ShowInformation(const Securities& securities) const {
-  const auto risk = _deposit.Risk();
-  const auto volume = _deposit.AvailableVolume(securities);
-  const auto stop_loss = _deposit.StopLossLevel(securities);
-  const auto take_profit = _deposit.TakeProfitLevel(securities);
-  const auto price = securities.Price();
-
-  const auto profit = (take_profit - securities.BuyPrice()) * volume;
-
-  std::cout << "Price: " << price << "\nVolume: " << volume
-            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
-            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
 }
 
 Deposit GetDeposit() {
@@ -94,6 +74,48 @@ Broker GetBroker() {
             << std::endl;
 
   return Broker(tax_broker, tax_exchange);
+}
+
+std::string GetSecurities() {
+  std::cout << "\nSecurities (or `q` for quit from programm): ";
+  std::string securities = "";
+
+  std::cin >> securities;
+
+  if (std::cin.fail() || securities.empty()) {
+    throw std::runtime_error("Incorrect securities.");
+  }
+
+  if (securities == std::string("q") || securities == std::string("Q")) {
+    throw std::runtime_error("Programm stop.");
+  }
+
+  return securities;
+}
+
+void DepositManager::GetSecuritiesInformation(const std::string& securities) {
+  if (!_moex_client->requestForSecurityInformation(securities)) {
+    throw std::runtime_error("Request to moex api not done.");
+  }
+
+  Securities sec(_moex_client->GetLastPrice(), _broker);
+  sec.SetLotSize(_moex_client->GetLotSize());
+
+  ShowInformation(sec);
+}
+
+void DepositManager::ShowInformation(const Securities& securities) const {
+  const auto risk = _deposit.Risk();
+  const auto volume = _deposit.AvailableVolume(securities);
+  const auto stop_loss = _deposit.StopLossLevel(securities);
+  const auto take_profit = _deposit.TakeProfitLevel(securities);
+  const auto price = securities.Price();
+
+  const auto profit = (take_profit - securities.BuyPrice()) * volume;
+
+  std::cout << "Price: " << price << "\nVolume: " << volume
+            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
+            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
 }
 
 }  // namespace deposit_manager
