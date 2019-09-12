@@ -17,8 +17,8 @@ class MoexClient {
 
   MoexClient(const MoexClient&) = delete;
   MoexClient& operator=(const MoexClient&) = delete;
-  MoexClient(MoexClient&& moex_client);
-  MoexClient& operator=(MoexClient&&);
+  MoexClient(MoexClient&& moex_client) noexcept;
+  MoexClient& operator=(MoexClient&&) noexcept;
 
   bool requestForSecurityInformation(const std::string& securities);
 

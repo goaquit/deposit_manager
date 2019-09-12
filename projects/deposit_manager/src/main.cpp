@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "deposit_manager.h"
 
@@ -8,16 +9,9 @@
 
 using DepositManager = deposit_manager::DepositManager;
 
-static struct {
-  double deposit = 0.0;
-  double deposit_free = 0.0;
-  double tax_broker = 0.0;
-  double tax_exchange = 0.0;
-  double risk_level = 1.0;
+ DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
+	 DepositManager::Config config;
 
-} config;
-
-void ReadConfiguration(int argc, char* argv[]) {
   using namespace boost::program_options;
 
   options_description desc("Allowed options");
@@ -59,19 +53,23 @@ void ReadConfiguration(int argc, char* argv[]) {
             << "\nBroker tax: " << config.tax_broker
             << "\nExchange tax: " << config.tax_exchange << "\n"
             << std::endl;
+
+  return config;
 };
 
 using namespace std;
 
 int main(int argc, char* argv[]) {
   try {
-    ReadConfiguration(argc, argv);
+	const auto config = ReadConfiguration(argc, argv);
+
+
+	DepositManager deposit_manager;
+	deposit_manager.Run(config);
+
   } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
   }
-
-  DepositManager deposit_manager;
-  deposit_manager.Run();
 
   return 0;
 }

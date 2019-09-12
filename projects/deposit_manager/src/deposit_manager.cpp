@@ -8,8 +8,6 @@ namespace deposit_manager {
 
 constexpr char kMoexApiUri[] = "https://iss.moex.com";
 
-Deposit GetDeposit();
-Broker GetBroker();
 std::string GetSecurities();
 
 using moex_client::MoexClient;
@@ -17,10 +15,11 @@ using moex_client::MoexClient;
 DepositManager::DepositManager()
     : _moex_client(std::make_unique<MoexClient>(kMoexApiUri)) {}
 
-void DepositManager::Run() {
+void DepositManager::Run(const Config& config) {
   try {
-    _deposit = GetDeposit();
-    _broker = GetBroker();
+	_deposit = Deposit(config.deposit, config.deposit_free);
+	_deposit.SetRiskLevel(config.risk_level);
+    _broker = Broker(config.tax_broker, config.tax_exchange);
 
     for (;;) {
       const auto securities = GetSecurities();

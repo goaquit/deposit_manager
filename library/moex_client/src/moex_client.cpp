@@ -2,16 +2,19 @@
 
 namespace moex_client {
 
-MoexClient::MoexClient(const std::string& rest_api_url)
-    : _client(std::make_unique<http_client>(rest_api_url.c_str())) {}
+	using string = utility::string_t;
 
-MoexClient& MoexClient::operator=(MoexClient&& moex_client) {
+	
+MoexClient::MoexClient(const std::string& rest_api_url)
+    : _client(std::make_unique<http_client>(string(rest_api_url.begin(), rest_api_url.end()))) {}
+
+MoexClient& MoexClient::operator=(MoexClient&& moex_client) noexcept { 
   _client = std::move(moex_client._client);
 
   return *this;
 }
 
-MoexClient::MoexClient(MoexClient&& moex_client) {
+MoexClient::MoexClient(MoexClient&& moex_client) noexcept {
   *this = std::move(moex_client);
 }
 
@@ -26,8 +29,8 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
     try {
       auto json_response = response.extract_json(true).get();
 
-      auto Value = [&json_response](const std::string& key, size_t index) {
-        const auto field = json_response.at(U(key)).as_object();
+      auto Value = [&json_response](const utility::string_t& key, size_t index) {
+        const auto field = json_response.at(key).as_object();
 
         if (field.at(U("data")).as_array().size() == 0) {
           throw std::runtime_error(
@@ -39,8 +42,9 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
         return data->at(index);
       };
 
-      _lot_size = Value("securities", 4).as_number().to_int32();
-      _last_price = Value("marketdata", 12).as_double();
+	  
+      _lot_size = Value(U("securities"), 4).as_number().to_int32();
+      _last_price = Value(U("marketdata"), 12).as_double();
 
       result_request = true;
     } catch (json_exception& e) {
@@ -48,10 +52,11 @@ bool MoexClient::requestForSecurityInformation(const std::string& securities) {
     }
   };
 
-  auto request = "/iss/engines/stock/markets/shares/boards/TQBR/securities/" +
-                 securities + ".json";
+  const auto request = "/iss/engines/stock/markets/shares/boards/TQBR/securities/" +
+	  securities + ".json";
 
-  web::uri_builder uri_builder(U(request));
+
+  web::uri_builder uri_builder(utility::string_t(request.begin(), request.end()));
 
   try {
     auto task_status = _client->request(methods::GET, uri_builder.to_string())
