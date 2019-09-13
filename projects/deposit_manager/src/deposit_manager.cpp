@@ -9,6 +9,7 @@ namespace deposit_manager {
 constexpr char kMoexApiUri[] = "https://iss.moex.com";
 
 std::string GetSecurities();
+bool GetSecuritieslist();
 
 using moex_client::MoexClient;
 using moex_client::MoexClientException;
@@ -22,58 +23,40 @@ void DepositManager::Run(const Config& config) {
     _deposit.SetRiskLevel(config.risk_level);
     _broker = Broker(config.tax_broker, config.tax_exchange);
 
+    if (config.show_list) {
+      ShowListAllSecurities();
+    }
+
     for (;;) {
       const auto securities = GetSecurities();
 
       GetSecuritiesInformation(securities);
     }
-
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+}  // namespace deposit_manager
+
+void DepositManager::ShowListAllSecurities() {
+  const auto securities_map = _moex_client->GetSecuritisMap();
+
+  for (const auto& [sec_id, securities] : securities_map) {
+    Securities sec(securities.last_price, _broker);
+    sec.SetLotSize(securities.lot_size);
+
+    ShowInformation(sec, sec_id);
+  }
 }
 
-Deposit GetDeposit() {
-  double deposit = 0.0, free_deposit = 0.0;
+bool GetSecuritieslist() {
+  std::cout << "\nShow all list? (y/n) : ";
 
-  std::cout << "Deposit: ";
-
-  if (!(std::cin >> deposit) || deposit <= 0.0) {
-    throw std::runtime_error(
-        "Incorrect deposit value. Deposit must by greater than 0");
+  std::string command;
+  if (!(std::cin >> command)) {
+    throw std::runtime_error("Incorrect input.");
   }
 
-  std::cout << "Free deposit: ";
-
-  if (!(std::cin >> free_deposit) || free_deposit < 0.0 ||
-      free_deposit > deposit) {
-    throw std::runtime_error(
-        "Incorrect free deposit value. Free deposit cannot be negative or more "
-        "than "
-        "deposit.");
-  }
-
-  double risk = 0.0;
-  std::cout << "Available risk for deposit ( from 0.0 to 1.0 ): ";
-  if (!(std::cin >> risk) || (risk < 0.0 || risk > 1.0)) {
-    throw std::runtime_error("Incorrect risk value. Risk Level Out of Range.");
-  }
-
-  Deposit depo(deposit, free_deposit);
-  depo.SetRiskLevel(risk);
-
-  return depo;
-}
-
-Broker GetBroker() {
-  double tax_broker = 0.003;
-  double tax_exchange = 0.0001;
-
-  std::cout << "Broker tax: " << tax_broker
-            << "(default); Exchange tax: " << tax_exchange << "(default);"
-            << std::endl;
-
-  return Broker(tax_broker, tax_exchange);
+  return (command == std::string("y") || command == std::string("Y"));
 }
 
 std::string GetSecurities() {
@@ -91,33 +74,43 @@ std::string GetSecurities() {
   return securities;
 }
 
-void DepositManager::GetSecuritiesInformation(const std::string& securities) {
+void DepositManager::GetSecuritiesInformation(const std::string& sec_id) {
   try {
     const auto [lot_size, last_price] =
-        _moex_client->SecurityInformation(securities);
+        _moex_client->SecurityInformation(sec_id);
 
     Securities sec(last_price, _broker);
     sec.SetLotSize(lot_size);
 
-    ShowInformation(sec);
+    ShowInformation(sec, sec_id);
 
   } catch (MoexClientException& e) {
     std::cerr << "Request to moex api not done.\n" << e.what() << std::endl;
   }
 }
 
-void DepositManager::ShowInformation(const Securities& securities) const {
+void DepositManager::ShowInformation(const Securities& securities,
+                                     const std::string& sec_id) const {
   const auto risk = _deposit.Risk();
   const auto volume = _deposit.AvailableVolume(securities);
+
+  if (volume == 0) {
+    std::cout << "\nSecurity " << sec_id << " not available for purchase."
+              << std::endl;
+
+    return;
+  }
+
   const auto stop_loss = _deposit.StopLossLevel(securities);
   const auto take_profit = _deposit.TakeProfitLevel(securities);
   const auto price = securities.Price();
 
   const auto profit = (take_profit - securities.BuyPrice()) * volume;
 
-  std::cout << "Price: " << price << "\nVolume: " << volume
-            << "\nStop loss: " << stop_loss << "\nTake profit: " << take_profit
-            << "\nRisk: " << risk << "\nProfit: " << profit << std::endl;
+  std::cout << "\nSecurities: " << sec_id << "\nPrice: " << price
+            << "\nVolume: " << volume << "\nStop loss: " << stop_loss
+            << "\nTake profit: " << take_profit << "\nRisk: " << risk
+            << "\nProfit: " << profit << std::endl;
 }
 
 }  // namespace deposit_manager

@@ -15,7 +15,7 @@ TEST(MoexClient, GetSecuritiesInfo) {
   MoexClient client(kMoexUrl);
 
   MoexClient::Securities securities;
-  ASSERT_NO_THROW(securities = client.requestForSecurityInformation("RSTI"));
+  ASSERT_NO_THROW(securities = client.SecurityInformation("RSTI"));
 
   {
     const auto actual_lot_size = securities.lot_size;
@@ -35,8 +35,16 @@ TEST(MoexClient, GetSecuritiesInfo) {
 TEST(MoexClient, UnsuccessGetSecuritiesInfo) {
   MoexClient client(kMoexUrl);
 
-  ASSERT_THROW(client.requestForSecurityInformation("RSTIII"),
-               MoexClientException);
+  ASSERT_THROW(client.SecurityInformation("RSTIII"), MoexClientException);
+}
+
+TEST(MoexClient, SecuritiesMap) {
+  MoexClient client(kMoexUrl);
+
+  MoexClient::SecuritiesMap securities_list;
+  ASSERT_NO_THROW(securities_list = client.GetSecuritisMap());
+
+  ASSERT_GE(securities_list.size(), 0);
 }
 
 }  // namespace moex_client

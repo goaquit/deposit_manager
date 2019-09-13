@@ -15,7 +15,8 @@ DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
   using namespace boost::program_options;
 
   options_description desc("Allowed options");
-  desc.add_options()("help,h", "produce help message")(
+  desc.add_options()("help,h", "produce help message")("list,l",
+                                                       "Show all securities")(
       "deposit,d", value<double>(&config.deposit)->default_value(0.0), "")(
       "free,f", value<double>(&config.deposit_free)->default_value(0.0), "")(
       "broker-tax,b", value<double>(&config.tax_broker)->default_value(0.003),
@@ -42,6 +43,8 @@ DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
     throw std::runtime_error(
         "free deposit should not exceed the size of the main deposit");
   }
+
+  config.show_list = vm.count("list");
 
   config.tax_broker = std::clamp(config.tax_broker, 0.0, 1.0);
   config.tax_exchange = std::clamp(config.tax_exchange, 0.0, 1.0);

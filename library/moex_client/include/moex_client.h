@@ -35,7 +35,11 @@ class MoexClient {
     double last_price = 0.0;
   };
 
-  Securities requestForSecurityInformation(const std::string& securities);
+  Securities SecurityInformation(const std::string& securities);
+
+  using SecuritiesMap = std::map<std::string, Securities>;
+
+  SecuritiesMap GetSecuritisMap();
 
  private:
   HttpClientPtrU _client;

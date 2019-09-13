@@ -25,7 +25,7 @@ void CheckSuccessRequest(int status_code) {
   }
 }
 
-MoexClient::Securities MoexClient::requestForSecurityInformation(
+MoexClient::Securities MoexClient::SecurityInformation(
     const std::string& requested_securities) {
   Securities securities;
 
@@ -70,4 +70,85 @@ MoexClient::Securities MoexClient::requestForSecurityInformation(
 
   return securities;
 }
+
+MoexClient::SecuritiesMap MoexClient::GetSecuritisMap() {
+  SecuritiesMap securities_map;
+
+  auto callback_response = [&securities_map](http_response response) {
+    CheckSuccessRequest(response.status_code());
+
+    try {
+      auto json_response = response.extract_json(true).get();
+      const auto securities_data =
+          json_response["securities"]["data"].as_array();
+      const auto marketdata_data =
+          json_response["marketdata"]["data"].as_array();
+
+      for (auto sec_itr = securities_data.begin(),
+                market_itr = marketdata_data.begin();
+           sec_itr != securities_data.end() &&
+           market_itr != marketdata_data.end();
+           ++sec_itr, ++market_itr) {
+        const auto sec_id = sec_itr->at(0).as_string();
+
+        const auto lot_size_value = sec_itr->at(4);
+        const auto last_price_value = market_itr->at(12);
+        if (lot_size_value.is_null() || last_price_value.is_null()) {
+          continue;
+        }
+
+        const std::string key(sec_id.begin(), sec_id.end());
+        auto& securities = securities_map[key];
+        securities.lot_size = lot_size_value.as_number().to_int32();
+        securities.last_price = last_price_value.as_double();
+      }
+
+      //      {
+      //        for (const auto& data : securities_data) {
+      //          const auto sec_id = data.at(0).as_string();
+      //          const std::string key(sec_id.begin(), sec_id.end());
+
+      //          auto& securities = securities_map[key];
+
+      //          securities.lot_size = data.at(4).as_number().is_int32();
+      //        }
+      //      }
+
+      //      {
+      //        for (const auto& data : marketdata_data) {
+      //          const auto sec_id = data.at(0).as_string();
+      //          const std::string key(sec_id.begin(), sec_id.end());
+
+      //          auto& securities = securities_map[key];
+
+      //          securities.last_price = data.at(12).as_double();
+
+      //          if (securities.last_price <= 0.0) {
+      //            securities_map.erase(key);
+      //          }
+      //        }
+      //    }
+    } catch (json_exception& e) {
+      std::cerr << "Json parse error:  " << e.what() << std::endl;
+    }
+  };
+
+  const string request =
+      "/iss/engines/stock/markets/shares/boards/TQBR/securities.json";
+
+  web::uri_builder uri_builder(request);
+
+  try {
+    _client->request(methods::GET, uri_builder.to_string())
+        .then(callback_response)
+        .wait();
+
+  } catch (std::exception& e) {
+    const std::string error_msg("MoexClient terminated with an error: ");
+
+    throw MoexClientException(error_msg + e.what());
+  }
+
+  return securities_map;
+}  // namespace moex_client
 }  // namespace moex_client

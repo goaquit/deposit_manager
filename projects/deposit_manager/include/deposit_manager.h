@@ -24,6 +24,7 @@ class DepositManager {
     double tax_broker = 0.0;
     double tax_exchange = 0.0;
     double risk_level = 1.0;
+    bool show_list = false;
   };
 
   void Run(const Config& config);
@@ -34,8 +35,11 @@ class DepositManager {
 
   MoexClientPtrU _moex_client = nullptr;
 
+  void ShowListAllSecurities();
+
   void GetSecuritiesInformation(const std::string& securities);
-  void ShowInformation(const Securities& securities) const;
+  void ShowInformation(const Securities& securities,
+                       const std::string& sec_id) const;
 };
 
 }  // namespace deposit_manager
