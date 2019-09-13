@@ -71,7 +71,8 @@ MoexClient::Securities MoexClient::SecurityInformation(
   return securities;
 }
 
-MoexClient::SecuritiesMap MoexClient::GetSecuritisMap() {
+MoexClient::SecuritiesMap MoexClient::GetSecuritisMap(
+    const FilterSecurities& filter_securities) {
   SecuritiesMap securities_map;
 
   auto callback_response = [&securities_map](http_response response) {
@@ -103,43 +104,32 @@ MoexClient::SecuritiesMap MoexClient::GetSecuritisMap() {
         securities.last_price = last_price_value.as_double();
       }
 
-      //      {
-      //        for (const auto& data : securities_data) {
-      //          const auto sec_id = data.at(0).as_string();
-      //          const std::string key(sec_id.begin(), sec_id.end());
-
-      //          auto& securities = securities_map[key];
-
-      //          securities.lot_size = data.at(4).as_number().is_int32();
-      //        }
-      //      }
-
-      //      {
-      //        for (const auto& data : marketdata_data) {
-      //          const auto sec_id = data.at(0).as_string();
-      //          const std::string key(sec_id.begin(), sec_id.end());
-
-      //          auto& securities = securities_map[key];
-
-      //          securities.last_price = data.at(12).as_double();
-
-      //          if (securities.last_price <= 0.0) {
-      //            securities_map.erase(key);
-      //          }
-      //        }
-      //    }
     } catch (json_exception& e) {
       std::cerr << "Json parse error:  " << e.what() << std::endl;
     }
   };
 
-  const string request =
-      "/iss/engines/stock/markets/shares/boards/TQBR/securities.json";
+  auto BUildRequest = [&filter_securities] {
+    const string request =
+        "/iss/engines/stock/markets/shares/boards/TQBR/securities.json";
+    web::uri_builder uri_builder(request);
 
-  web::uri_builder uri_builder(request);
+    if (!filter_securities.empty()) {
+      auto itr = filter_securities.cbegin();
+      string query(itr->begin(), itr->end());
+
+      for (++itr; itr != filter_securities.cend(); ++itr) {
+        query += "," + string(itr->begin(), itr->end());
+      }
+
+      uri_builder.append_query(U("securities"), query);
+    }
+
+    return uri_builder.to_string();
+  };
 
   try {
-    _client->request(methods::GET, uri_builder.to_string())
+    _client->request(methods::GET, BUildRequest())
         .then(callback_response)
         .wait();
 
@@ -150,5 +140,6 @@ MoexClient::SecuritiesMap MoexClient::GetSecuritisMap() {
   }
 
   return securities_map;
-}  // namespace moex_client
+}
+
 }  // namespace moex_client

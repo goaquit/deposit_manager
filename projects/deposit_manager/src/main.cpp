@@ -17,6 +17,9 @@ DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
   options_description desc("Allowed options");
   desc.add_options()("help,h", "produce help message")("list,l",
                                                        "Show all securities")(
+      "securities-filter,s",
+      value<std::vector<std::string>>(&config.securities),
+      "Set securities filter")(
       "deposit,d", value<double>(&config.deposit)->default_value(0.0), "")(
       "free,f", value<double>(&config.deposit_free)->default_value(0.0), "")(
       "broker-tax,b", value<double>(&config.tax_broker)->default_value(0.003),

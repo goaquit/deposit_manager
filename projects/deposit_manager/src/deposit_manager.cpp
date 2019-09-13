@@ -24,7 +24,7 @@ void DepositManager::Run(const Config& config) {
     _broker = Broker(config.tax_broker, config.tax_exchange);
 
     if (config.show_list) {
-      ShowListAllSecurities();
+      ShowListAllSecurities(config.securities);
     }
 
     for (;;) {
@@ -37,8 +37,9 @@ void DepositManager::Run(const Config& config) {
   }
 }  // namespace deposit_manager
 
-void DepositManager::ShowListAllSecurities() {
-  const auto securities_map = _moex_client->GetSecuritisMap();
+void DepositManager::ShowListAllSecurities(
+    const std::vector<std::string>& filter) {
+  const auto securities_map = _moex_client->GetSecuritisMap(filter);
 
   for (const auto& [sec_id, securities] : securities_map) {
     Securities sec(securities.last_price, _broker);

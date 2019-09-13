@@ -39,7 +39,8 @@ class MoexClient {
 
   using SecuritiesMap = std::map<std::string, Securities>;
 
-  SecuritiesMap GetSecuritisMap();
+  using FilterSecurities = std::vector<std::string>;
+  SecuritiesMap GetSecuritisMap(const FilterSecurities& filter_securities = {});
 
  private:
   HttpClientPtrU _client;

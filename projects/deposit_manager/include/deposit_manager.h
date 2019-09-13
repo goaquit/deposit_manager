@@ -25,6 +25,7 @@ class DepositManager {
     double tax_exchange = 0.0;
     double risk_level = 1.0;
     bool show_list = false;
+    std::vector<std::string> securities;
   };
 
   void Run(const Config& config);
@@ -35,7 +36,7 @@ class DepositManager {
 
   MoexClientPtrU _moex_client = nullptr;
 
-  void ShowListAllSecurities();
+  void ShowListAllSecurities(const std::vector<std::string>& filter);
 
   void GetSecuritiesInformation(const std::string& securities);
   void ShowInformation(const Securities& securities,
