@@ -1,7 +1,7 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "deposit_manager.h"
 
@@ -9,8 +9,8 @@
 
 using DepositManager = deposit_manager::DepositManager;
 
- DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
-	 DepositManager::Config config;
+DepositManager::Config ReadConfiguration(int argc, char* argv[]) {
+  DepositManager::Config config;
 
   using namespace boost::program_options;
 
@@ -55,17 +55,16 @@ using DepositManager = deposit_manager::DepositManager;
             << std::endl;
 
   return config;
-};
+}
 
 using namespace std;
 
 int main(int argc, char* argv[]) {
   try {
-	const auto config = ReadConfiguration(argc, argv);
+    const auto config = ReadConfiguration(argc, argv);
 
-
-	DepositManager deposit_manager;
-	deposit_manager.Run(config);
+    DepositManager deposit_manager;
+    deposit_manager.Run(config);
 
   } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
