@@ -11,14 +11,15 @@ constexpr char kMoexApiUri[] = "https://iss.moex.com";
 std::string GetSecurities();
 
 using moex_client::MoexClient;
+using moex_client::MoexClientException;
 
 DepositManager::DepositManager()
     : _moex_client(std::make_unique<MoexClient>(kMoexApiUri)) {}
 
 void DepositManager::Run(const Config& config) {
   try {
-	_deposit = Deposit(config.deposit, config.deposit_free);
-	_deposit.SetRiskLevel(config.risk_level);
+    _deposit = Deposit(config.deposit, config.deposit_free);
+    _deposit.SetRiskLevel(config.risk_level);
     _broker = Broker(config.tax_broker, config.tax_exchange);
 
     for (;;) {
@@ -91,17 +92,18 @@ std::string GetSecurities() {
 }
 
 void DepositManager::GetSecuritiesInformation(const std::string& securities) {
-  if (!_moex_client->requestForSecurityInformation(securities)) {
-    const auto error_message =
-        "Request to moex api not done.\n" + _moex_client->error();
-    std::cerr << error_message << std::endl;
-    return;
+  try {
+    const auto [lot_size, last_price] =
+        _moex_client->SecurityInformation(securities);
+
+    Securities sec(last_price, _broker);
+    sec.SetLotSize(lot_size);
+
+    ShowInformation(sec);
+
+  } catch (MoexClientException& e) {
+    std::cerr << "Request to moex api not done.\n" << e.what() << std::endl;
   }
-
-  Securities sec(_moex_client->GetLastPrice(), _broker);
-  sec.SetLotSize(_moex_client->GetLotSize());
-
-  ShowInformation(sec);
 }
 
 void DepositManager::ShowInformation(const Securities& securities) const {

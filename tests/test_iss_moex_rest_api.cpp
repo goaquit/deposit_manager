@@ -9,27 +9,34 @@
 
 constexpr char kMoexUrl[] = "https://iss.moex.com";
 
-
 namespace moex_client {
 
 TEST(MoexClient, GetSecuritiesInfo) {
   MoexClient client(kMoexUrl);
 
-  ASSERT_TRUE(client.requestForSecurityInformation("RSTI"));
+  MoexClient::Securities securities;
+  ASSERT_NO_THROW(securities = client.requestForSecurityInformation("RSTI"));
 
   {
-    const auto actual_lot_size = client.GetLotSize();
+    const auto actual_lot_size = securities.lot_size;
     int expected = 1000;
 
     ASSERT_EQ(actual_lot_size, expected);
   }
 
   {
-    const auto actual_last_price = client.GetLastPrice();
+    const auto actual_last_price = securities.last_price;
     double expected = 0.0;
 
     ASSERT_GE(actual_last_price, expected);
   }
+}
+
+TEST(MoexClient, UnsuccessGetSecuritiesInfo) {
+  MoexClient client(kMoexUrl);
+
+  ASSERT_THROW(client.requestForSecurityInformation("RSTIII"),
+               MoexClientException);
 }
 
 }  // namespace moex_client
